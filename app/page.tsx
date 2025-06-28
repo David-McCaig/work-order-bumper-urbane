@@ -1,4 +1,6 @@
 "use client";
+
+// Components
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,12 +11,21 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+
+// Actions
 import { initiateLightspeedAuth } from "@/app/actions";
+
+//utils
+import { generateState, generatePKCECodes } from "@/lib/utils";
 
 export default function Home() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await initiateLightspeedAuth();
+    const state = generateState();
+    sessionStorage.setItem("state", state);
+    const { codeVerifier, codeChallenge } = await generatePKCECodes();
+    sessionStorage.setItem("codeVerifier", codeVerifier);
+    await initiateLightspeedAuth(state, codeChallenge);
   };
 
   return (
