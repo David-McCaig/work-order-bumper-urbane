@@ -11,7 +11,8 @@
  * Initiates the OAuth flow with Lightspeed
  * @param redirectUrl - The URL to redirect to after authentication
  */
-export async function initiateLightspeedAuth(redirectUrl: string) {
+export async function initiateLightspeedAuth() {
+  console.log("initiateLightspeedAuth");
   // TODO: Implement OAuth initiation
   // - Generate OAuth state parameter
   // - Build authorization URL

@@ -1,15 +1,30 @@
+"use client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { initiateLightspeedAuth } from "@/app/actions";
 
 export default function Home() {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await initiateLightspeedAuth();
+  };
+
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="container mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold tracking-tight">Lightspeed API Auth</h1>
+          <h1 className="text-4xl font-bold tracking-tight">
+            Lightspeed API Auth
+          </h1>
           <p className="text-muted-foreground mt-2">
             Secure authentication for Lightspeed API integration
           </p>
@@ -33,11 +48,17 @@ export default function Home() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Click the button below to start the authentication process with Lightspeed.
+                  Click the button below to start the authentication process
+                  with Lightspeed.
                 </p>
-                <Button className="w-full">
+                <form onSubmit={handleSubmit}>
+                <Button
+                  type="submit"
+                  className="w-full cursor-pointer"
+                >
                   Connect to Lightspeed
                 </Button>
+                </form>
               </div>
             </CardContent>
           </Card>
@@ -46,9 +67,7 @@ export default function Home() {
           <Card>
             <CardHeader>
               <CardTitle>Connection Status</CardTitle>
-              <CardDescription>
-                Current authentication status
-              </CardDescription>
+              <CardDescription>Current authentication status</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center space-x-2">
