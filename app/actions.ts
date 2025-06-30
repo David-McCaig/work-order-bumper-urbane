@@ -13,6 +13,15 @@
  */
 export async function initiateLightspeedAuth(state: string, codeChallenge: string) {
   console.log("initiateLightspeedAuth");
+  const clientId = process.env.LIGHTSPEED_CLIENT_ID;
+
+
+  const authUrl = `https://cloud.lightspeedapp.com/auth/oauth/authorize?response_type=code&client_id=${clientId}&scope=employee:all&state=${state}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
+
+  // Redirect to the authorization URL
+  return { redirect: authUrl };
+
+
   // TODO: Implement OAuth initiation
   // - Generate OAuth state parameter
   // - Build authorization URL
