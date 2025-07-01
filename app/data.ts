@@ -69,9 +69,36 @@ export async function getAccountDetails() {
     `${lightSpeedApiUrl}/API/V3/Account.json`,
     {
       headers: {
-      Authorization: `Bearer ${token}`,
+      "Authorization": `Bearer ${token}`,
     },
   });
 
     return response?.data;
+}
+
+export async function getWorkOrders () {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("lightspeed_token")?.value;
+
+    if (!token) {
+        throw new Error("No token found");
+    }
+
+    const accountId = cookieStore.get("lightspeed_account_id")?.value;
+
+    const lightSpeedApiUrl = process?.env?.LIGHTSPEED_API_URL;
+console.log(token,"token")
+try{
+    const response = await axios.get(`${lightSpeedApiUrl}/API/V3/Account/${accountId}/Workorder.json`, {
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    });
+    return response?.data;
+}catch(error){
+    console.log(error,"error")
+}
+
+
+        return null;
 }

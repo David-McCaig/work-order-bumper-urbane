@@ -10,7 +10,7 @@ export async function initiateLightspeedAuth(state: string) {
   const clientId = process.env.LIGHTSPEED_CLIENT_ID;
 
 
-  const authUrl = `https://cloud.lightspeedapp.com/auth/oauth/authorize?response_type=code&client_id=${clientId}&scope=employee:register+employee:inventory&state=${state}`;
+  const authUrl = `https://cloud.lightspeedapp.com/auth/oauth/authorize?response_type=code&client_id=${clientId}&scope=employee:register+employee:inventory+employee:workbench&state=${state}`;
   
   // Redirect to the authorization URL
   redirect(authUrl)

@@ -1,4 +1,4 @@
-import { getAccountDetails } from "@/app/data";
+import { getAccountDetails, getWorkOrders } from "@/app/data";
 import {
   Card,
   CardContent,
@@ -10,6 +10,9 @@ import { Badge } from "@/components/ui/badge";
 
 export default async function page() {
   const accountDetails = await getAccountDetails();
+  const workOrders = await getWorkOrders();
+
+  console.log(workOrders);
 
   return (
     <div className="container mx-auto p-6">
