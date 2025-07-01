@@ -1,5 +1,3 @@
-"use client";
-
 // Components
 import { Button } from "@/components/ui/button";
 import {
@@ -11,20 +9,11 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import AuthButton from "@/components/home-page/auth-button";
 
-// Actions
-import { initiateLightspeedAuth } from "@/app/actions";
 
-//utils
-import { generateState } from "@/lib/utils";
+export default async function Home() {
 
-export default function Home() {
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const state = generateState();
-    sessionStorage.setItem("state", state);
-    await initiateLightspeedAuth(state);
-  };
 
   return (
     <div className="min-h-screen bg-background p-8">
@@ -45,9 +34,9 @@ export default function Home() {
         <Separator className="my-8" />
 
         {/* Main Content */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div>
           {/* Authentication Card */}
-          <Card>
+          <Card className="mb-6">
             <CardHeader>
               <CardTitle>Authentication</CardTitle>
               <CardDescription>
@@ -60,32 +49,8 @@ export default function Home() {
                   Click the button below to start the authentication process
                   with Lightspeed.
                 </p>
-                <form onSubmit={handleSubmit}>
-                <Button
-                  type="submit"
-                  className="w-full cursor-pointer"
-                >
-                  Connect to Lightspeed
-                </Button>
-                </form>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Status Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Connection Status</CardTitle>
-              <CardDescription>Current authentication status</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center space-x-2">
-                <div className="h-3 w-3 rounded-full bg-red-500"></div>
-                <span className="text-sm">Not connected</span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                You need to authenticate with Lightspeed to access the API.
-              </p>
+              <AuthButton />
             </CardContent>
           </Card>
 
