@@ -28,9 +28,9 @@ export async function GET(request: Request) {
       }
     );
 
-    const data = tokenResponse.data;
-    const accessToken = data.access_token;
-    const refreshToken = data.refresh_token;
+    const data = tokenResponse?.data;
+    const accessToken = data?.access_token;
+    const refreshToken = data?.refresh_token;
 
     const newAccessTokenResponse = await axios.post(
       "https://cloud.lightspeedapp.com/auth/oauth/token",
@@ -42,8 +42,8 @@ export async function GET(request: Request) {
       }
     );
 
-    const newAccessTokenData = newAccessTokenResponse.data;
-    const newAccessToken = newAccessTokenData.access_token;
+    const newAccessTokenData = newAccessTokenResponse?.data;
+    const newAccessToken = newAccessTokenData?.access_token;
 
     // Set HTTP-only cookie with the access token
     const response = NextResponse.redirect(`${origin}/dashboard`);

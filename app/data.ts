@@ -20,7 +20,7 @@ export async function getAccountId(token: string) {
         }
     });
 
-    const accountId = response.data.Account.accountID;
+    const accountId = response?.data?.Account?.accountID;
     // Store account ID in an HTTP-only cookie
 
     return accountId;
@@ -52,4 +52,22 @@ export async function isTokenValid(): Promise<boolean> {
     } catch (error) {
         return false;
     }
+}
+
+
+export async function getAccountDetails() {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("lightspeed_token")?.value;
+
+    if (!token) {
+        throw new Error("No token found");
+    }
+
+    const response = await axios.get("https://api.lightspeedapp.com/API/V3/Account.json", {
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    });
+
+    return response?.data;
 }
