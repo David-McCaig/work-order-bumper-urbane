@@ -16,16 +16,14 @@ import { Separator } from "@/components/ui/separator";
 import { initiateLightspeedAuth } from "@/app/actions";
 
 //utils
-import { generateState, generatePKCECodes } from "@/lib/utils";
+import { generateState } from "@/lib/utils";
 
 export default function Home() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const state = generateState();
     sessionStorage.setItem("state", state);
-    const { codeVerifier, codeChallenge } = await generatePKCECodes();
-    sessionStorage.setItem("codeVerifier", codeVerifier);
-    await initiateLightspeedAuth(state, codeChallenge);
+    await initiateLightspeedAuth(state);
   };
 
   return (

@@ -1,5 +1,7 @@
 "use server";
 
+import { redirect } from "next/navigation";
+
 // Server Actions for Lightspeed API Authentication
 // This file contains all server-side actions for handling authentication and API calls
 
@@ -11,15 +13,15 @@
  * Initiates the OAuth flow with Lightspeed
  * @param redirectUrl - The URL to redirect to after authentication
  */
-export async function initiateLightspeedAuth(state: string, codeChallenge: string) {
+export async function initiateLightspeedAuth(state: string) {
   console.log("initiateLightspeedAuth");
   const clientId = process.env.LIGHTSPEED_CLIENT_ID;
 
 
-  const authUrl = `https://cloud.lightspeedapp.com/auth/oauth/authorize?response_type=code&client_id=${clientId}&scope=employee:all&state=${state}&code_challenge=${codeChallenge}&code_challenge_method=S256`;
-
+  const authUrl = `https://cloud.lightspeedapp.com/auth/oauth/authorize?response_type=code&client_id=${clientId}&scope=employee:register+employee:inventory&state=${state}`;
+  
   // Redirect to the authorization URL
-  return { redirect: authUrl };
+  redirect(authUrl)
 
 
   // TODO: Implement OAuth initiation
