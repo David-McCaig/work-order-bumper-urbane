@@ -42,6 +42,8 @@ export async function GET(request: Request) {
       }
     );
 
+    console.log(newAccessTokenResponse, "newAccessTokenResponse");
+
     const newAccessTokenData = newAccessTokenResponse?.data;
     const newAccessToken = newAccessTokenData?.access_token;
 
