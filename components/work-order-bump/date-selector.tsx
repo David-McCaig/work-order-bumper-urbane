@@ -18,12 +18,10 @@ export function DateSelector({ fromDate, toDate, onFromDateChange, onToDateChang
 
   const handleFromDateChange = (date: Date | undefined) => {
     if (date) {
-      // Fix timezone issue: Create a new date in local timezone to avoid UTC conversion
-      const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-      
-      onFromDateChange(localDate)
+      // react-day-picker creates dates in local timezone, so we can use them directly
+      onFromDateChange(date)
       // Navigate to the new date URL
-      const formattedDate = format(localDate, "yyyy-MM-dd")
+      const formattedDate = format(date, "yyyy-MM-dd")
       router.push(`/work-order-bump/${formattedDate}`)
     }
   }
@@ -65,9 +63,8 @@ export function DateSelector({ fromDate, toDate, onFromDateChange, onToDateChang
             selected={toDate}
             onSelect={(date) => {
               if (date) {
-                // Fix timezone issue: Create a new date in local timezone to avoid UTC conversion
-                const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-                onToDateChange(localDate)
+                // react-day-picker creates dates in local timezone, so we can use them directly
+                onToDateChange(date)
               }
             }}
             className="rounded-md border"

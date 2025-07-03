@@ -44,10 +44,15 @@ export function WorkOrderBump({ initialWorkOrders, workorderStatuses, initialFro
 
   // Initialize dates on client side only to prevent hydration mismatch
   useEffect(() => {
-    // Fix timezone issue: Create dates in local timezone to avoid UTC conversion
+    // Fix timezone issue: Use date components directly to avoid any timezone conversion
     const today = new Date()
-    const localToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    const localTomorrow = new Date(localToday.getFullYear(), localToday.getMonth(), localToday.getDate() + 1)
+    const localYear = today.getFullYear()
+    const localMonth = today.getMonth()
+    const localDay = today.getDate()
+    
+    // Create dates using the local components (this ensures no timezone conversion)
+    const localToday = new Date(localYear, localMonth, localDay)
+    const localTomorrow = new Date(localYear, localMonth, localDay + 1)
     
     setFromDate(initialFromDate || localToday)
     setToDate(localTomorrow)
