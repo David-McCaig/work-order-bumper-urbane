@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation"
-import { format } from "date-fns"
 
 export default function WorkOrderBumpPage() {
-  // Redirect to today's date in the dynamic route
-  const today = format(new Date(), "yyyy-MM-dd")
+  // Get current date in a server-side consistent way
+  const now = new Date()
+  const today = now.toISOString().split('T')[0] // YYYY-MM-DD format
   redirect(`/work-order-bump/${today}`)
 } 

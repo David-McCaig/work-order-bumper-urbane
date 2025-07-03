@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import confetti from "canvas-confetti"
 
@@ -10,6 +10,7 @@ import { addDays, format } from "date-fns"
 //components
 import { DateSelector } from "./date-selector"
 import { WorkOrderTable } from "./work-order-table"
+import { ClientOnly } from "@/components/ui/client-only"
 
 //actions
 import { bumpWorkOrders } from "@/app/actions"
@@ -36,14 +37,20 @@ interface WorkOrderBumpProps {
 }
 
 export function WorkOrderBump({ initialWorkOrders, workorderStatuses, initialFromDate }: WorkOrderBumpProps) {
-  const today = new Date()
-  const tomorrow = addDays(today, 1)
-
-  const [fromDate, setFromDate] = useState<Date>(initialFromDate || today)
-  const [toDate, setToDate] = useState<Date>(tomorrow)
-  const [selectedWorkOrders, setSelectedWorkOrders] = useState<string[]>(initialWorkOrders.map((wo) => wo.workorderID))
+  const [fromDate, setFromDate] = useState<Date | null>(null)
+  const [toDate, setToDate] = useState<Date | null>(null)
+  const [selectedWorkOrders, setSelectedWorkOrders] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
+  // Initialize dates on client side only to prevent hydration mismatch
+  useEffect(() => {
+    const today = new Date()
+    const tomorrow = addDays(today, 1)
+    
+    setFromDate(initialFromDate || today)
+    setToDate(tomorrow)
+    setSelectedWorkOrders(initialWorkOrders.map((wo) => wo.workorderID))
+  }, [initialFromDate, initialWorkOrders])
 
   // Handle work order selection
   const handleWorkOrderSelection = (workOrderId: string, checked: boolean) => {
@@ -70,7 +77,7 @@ export function WorkOrderBump({ initialWorkOrders, workorderStatuses, initialFro
     setIsLoading(true)
     
     try {
-      const result = await bumpWorkOrders(selectedWorkOrders, toDate)
+      const result = await bumpWorkOrders(selectedWorkOrders, toDate!)
      
       if (result.successful > 0) {
         // Trigger confetti when bumping is successful
@@ -80,7 +87,7 @@ export function WorkOrderBump({ initialWorkOrders, workorderStatuses, initialFro
           origin: { y: 0.6 }
         })
         
-        toast.success(`Successfully bumped ${result.successful} work order(s) to ${format(toDate, "PPP")}`, {
+        toast.success(`Successfully bumped ${result.successful} work order(s) to ${format(toDate!, "PPP")}`, {
           description: result.failed > 0 ? `${result.failed} work order(s) failed to bump` : undefined,
           duration: 5000 // 5 seconds
         })
@@ -100,31 +107,45 @@ export function WorkOrderBump({ initialWorkOrders, workorderStatuses, initialFro
     }
   }
 
-  return (
+  const loadingFallback = (
     <div className="container mx-auto p-6 space-y-6">
       <div className="text-center">
         <h1 className="text-3xl font-bold">Work Order Bump Tool</h1>
-        <p className="text-muted-foreground mt-2">Select work orders from one day and bump them to another day</p>
+        <p className="text-muted-foreground mt-2">Loading...</p>
       </div>
-
-      <DateSelector
-        fromDate={fromDate}
-        toDate={toDate}
-        onFromDateChange={setFromDate}
-        onToDateChange={setToDate}
-      />
-
-      <WorkOrderTable
-        workorderStatuses={workorderStatuses}
-        workOrders={initialWorkOrders}
-        fromDate={fromDate}
-        selectedWorkOrders={selectedWorkOrders}
-        isLoading={isLoading}
-        onWorkOrderSelection={handleWorkOrderSelection}
-        onSelectAll={handleSelectAll}
-        onBumpWorkOrders={handleBumpWorkOrders}
-        
-      />
     </div>
+  )
+
+  return (
+    <ClientOnly fallback={loadingFallback}>
+      {fromDate && toDate ? (
+        <div className="container mx-auto p-6 space-y-6">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold">Work Order Bump Tool</h1>
+            <p className="text-muted-foreground mt-2">Select work orders from one day and bump them to another day</p>
+          </div>
+
+          <DateSelector
+            fromDate={fromDate}
+            toDate={toDate}
+            onFromDateChange={setFromDate}
+            onToDateChange={setToDate}
+          />
+
+          <WorkOrderTable
+            workorderStatuses={workorderStatuses}
+            workOrders={initialWorkOrders}
+            fromDate={fromDate}
+            selectedWorkOrders={selectedWorkOrders}
+            isLoading={isLoading}
+            onWorkOrderSelection={handleWorkOrderSelection}
+            onSelectAll={handleSelectAll}
+            onBumpWorkOrders={handleBumpWorkOrders}
+          />
+        </div>
+      ) : (
+        loadingFallback
+      )}
+    </ClientOnly>
   )
 } 
