@@ -120,6 +120,20 @@ export function WorkOrderBump({ initialWorkOrders, workorderStatuses, initialFro
         <h1 className="text-3xl font-bold">Work Order Bump Tool</h1>
         <p className="text-muted-foreground mt-2">Select work orders from one day and bump them to another day</p>
       </div>
+      <div className="text-center">
+        <p>Loading...</p>
+      </div>
+    </div>
+  )
+
+  return (
+    <ClientOnly fallback={loadingFallback}>
+      {fromDate && toDate ? (
+        <div className="container mx-auto p-6 space-y-6">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold">Work Order Bump Tool</h1>
+            <p className="text-muted-foreground mt-2">Select work orders from one day and bump them to another day</p>
+          </div>
 
           <DateSelector
             fromDate={fromDate}
