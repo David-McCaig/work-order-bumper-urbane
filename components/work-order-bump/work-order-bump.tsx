@@ -33,7 +33,7 @@ interface WorkOrderStatus {
 interface WorkOrderBumpProps {
   initialWorkOrders: WorkOrder[]
   workorderStatuses: WorkOrderStatus[]
-  initialFromDate?: Date
+  initialFromDate?: string
 }
 
 export function WorkOrderBump({ initialWorkOrders, workorderStatuses, initialFromDate }: WorkOrderBumpProps) {
@@ -56,7 +56,14 @@ export function WorkOrderBump({ initialWorkOrders, workorderStatuses, initialFro
     const localToday = new Date(localYear, localMonth, localDay)
     const localTomorrow = new Date(localYear, localMonth, localDay + 1)
     
-    setFromDate(initialFromDate || localToday)
+    // Parse the initial date string if provided, otherwise use today
+    let parsedFromDate = localToday
+    if (initialFromDate) {
+      const [year, month, day] = initialFromDate.split('-').map(Number)
+      parsedFromDate = new Date(year, month - 1, day) // month is 0-indexed
+    }
+    
+    setFromDate(parsedFromDate)
     setToDate(localTomorrow)
     setSelectedWorkOrders(initialWorkOrders.map((wo) => wo.workorderID))
   }, [initialFromDate, initialWorkOrders])

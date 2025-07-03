@@ -17,9 +17,11 @@ interface WorkOrderStatus {
 export default async function Page({ params }: { params: Promise<{ date: string }> }) {
   // Parse the date from the URL parameter
   let fromDate: Date
+  let dateString: string
   
   try {
     const { date } = await params
+    dateString = date
     // Expect date in YYYY-MM-DD format
     // Fix timezone issue by parsing in local timezone instead of UTC
     const [year, month, day] = date.split('-').map(Number)
@@ -61,6 +63,6 @@ export default async function Page({ params }: { params: Promise<{ date: string 
   return <WorkOrderBump 
     initialWorkOrders={workOrders} 
     workorderStatuses={workorderStatuses || []}
-    initialFromDate={fromDate}
+    initialFromDate={dateString}
   />
 } 
