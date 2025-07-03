@@ -19,8 +19,14 @@ export async function initiateLightspeedAuth(state: string) {
   redirect(authUrl)
 }
 
+interface WorkOrderBumpResult {
+  workOrderId: string;
+  success: boolean;
+  data?: unknown;
+  error?: unknown;
+}
 
-export async function bumpWorkOrders(workOrders: any, toDate: Date) {
+export async function bumpWorkOrders(workOrders: string[], toDate: Date) {
 
   const cookieStore = await cookies();
   const token = cookieStore.get("lightspeed_token")?.value;
@@ -37,7 +43,7 @@ export async function bumpWorkOrders(workOrders: any, toDate: Date) {
   }
 
   const results = await Promise.all(
-    workOrders.map(async (workOrderId: any) => {
+    workOrders.map(async (workOrderId: string) => {
       const requestData = {
         etaOut: toDate.toISOString().replace(/\.\d{3}Z$/, '+00:00')
       };
@@ -54,14 +60,15 @@ export async function bumpWorkOrders(workOrders: any, toDate: Date) {
           }
         );
         
-        return { workOrderId, success: true, data: res.data };
-      } catch (error: any) {
+        return { workOrderId, success: true, data: res.data } as WorkOrderBumpResult;
+      } catch (error: unknown) {
         console.error(`Failed to update work order ${workOrderId}:`, error);
-        if (error.response) {
-          console.error(`Error Response Status for ${workOrderId}:`, error.response.status);
-          console.error(`Error Response Data for ${workOrderId}:`, JSON.stringify(error.response.data, null, 2));
+        if (error && typeof error === 'object' && 'response' in error) {
+          const axiosError = error as { response?: { status?: number; data?: unknown } };
+          console.error(`Error Response Status for ${workOrderId}:`, axiosError.response?.status);
+          console.error(`Error Response Data for ${workOrderId}:`, JSON.stringify(axiosError.response?.data, null, 2));
         }
-        return { workOrderId, success: false, error };
+        return { workOrderId, success: false, error } as WorkOrderBumpResult;
       }
     })
   );

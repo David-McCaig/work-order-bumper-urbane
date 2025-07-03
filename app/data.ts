@@ -4,9 +4,7 @@ import axios from "axios";
 import { cookies } from "next/headers";
 
 export async function getAccountId(token: string) {
-  const cookieStore = await cookies();
   const lightSpeedApiUrl = process?.env?.LIGHTSPEED_API_URL;
-  const storedAccountId = cookieStore.get("lightspeed_account_id")?.value;
 
   if (!token) {
     throw new Error("No token found");
@@ -48,7 +46,7 @@ export async function isTokenValid(): Promise<boolean> {
 
     // If the request succeeds, the token is valid
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -110,8 +108,8 @@ export async function getWorkOrders(date?: Date) {
       }
     );
     return response?.data;
-  } catch (error) {
-    console.log(error, "error");
+  } catch {
+    console.log("Error fetching work orders");
   }
 
   return null;

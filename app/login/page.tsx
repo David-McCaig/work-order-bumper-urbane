@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import AuthButton from "@/components/home-page/auth-button"
 import {
@@ -12,10 +13,9 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Lock } from "lucide-react";
 
-export default function Page() {
+function LoginContent() {
     const searchParams = useSearchParams();
     const reason = searchParams.get("reason");
-    const from = searchParams.get("from");
 
     // Determine the appropriate message based on the reason
     const getReasonMessage = () => {
@@ -82,5 +82,23 @@ export default function Page() {
                 </Card>
             </div>
         </div>
+    )
+}
+
+export default function Page() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-background p-8">
+                <div className="container mx-auto max-w-md">
+                    <div className="mb-6 text-center">
+                        <h1 className="text-2xl font-bold tracking-tight mb-2">
+                            Loading...
+                        </h1>
+                    </div>
+                </div>
+            </div>
+        }>
+            <LoginContent />
+        </Suspense>
     )
 }

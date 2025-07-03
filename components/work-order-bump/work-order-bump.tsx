@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 import confetti from "canvas-confetti"
 
 //utils
-import { addDays, isSameDay, parseISO, format } from "date-fns"
+import { addDays, format } from "date-fns"
 
 //components
 import { DateSelector } from "./date-selector"

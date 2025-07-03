@@ -1,15 +1,21 @@
 import { WorkOrderBump } from "@/components/work-order-bump"
 import { getWorkorderStatuses, getWorkOrders, isTokenValid } from "@/app/data"
-import { parseISO, format } from "date-fns"
+import { parseISO } from "date-fns"
 import { notFound, redirect } from "next/navigation"
 
-interface WorkOrderBumpDatePageProps {
-  params: {
-    date: string
-  }
+interface WorkOrder {
+  workorderID: string;
+  workorderStatusID: string;
+  [key: string]: unknown;
 }
 
-export default async function WorkOrderBumpDatePage({ params }: WorkOrderBumpDatePageProps) {
+interface WorkOrderStatus {
+  workorderStatusID: string;
+  name: string;
+  [key: string]: unknown;
+}
+
+export default async function Page({ params }: { params: Promise<{ date: string }> }) {
   // Parse the date from the URL parameter
   let fromDate: Date
   
@@ -22,7 +28,7 @@ export default async function WorkOrderBumpDatePage({ params }: WorkOrderBumpDat
     if (isNaN(fromDate.getTime())) {
       notFound()
     }
-  } catch (error) {
+  } catch {
     notFound()
   }
 
@@ -35,10 +41,7 @@ export default async function WorkOrderBumpDatePage({ params }: WorkOrderBumpDat
   const [workorderStatuses, workOrdersData] = await Promise.all([
     getWorkorderStatuses(),
     getWorkOrders(fromDate),
- 
   ]);
-
- 
 
   // Ensure workOrders is always an array
   let workOrders = workOrdersData?.Workorder || []
@@ -49,9 +52,8 @@ export default async function WorkOrderBumpDatePage({ params }: WorkOrderBumpDat
   }
 
   //remove work orders that have status Floor Bike, Finished, Done & Paid,Appointment, Write Off, Fitting, Estimate, Class
-
-  workOrders = workOrders.filter((workOrder:any) => {
-    const status = workorderStatuses.find((status:any) => status.workorderStatusID === workOrder.workorderStatusID)
+  workOrders = workOrders.filter((workOrder: WorkOrder) => {
+    const status = workorderStatuses.find((status: WorkOrderStatus) => status.workorderStatusID === workOrder.workorderStatusID)
     return status.name !== "Floor Bike" && status.name !== "Finished" && status.name !== "Done & Paid" && status.name !== "Appointment" && status.name !== "Write Off" && status.name !== "Fitting" && status.name !== "Estimate" && status.name !== "Class"
   })
   

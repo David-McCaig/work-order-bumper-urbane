@@ -28,11 +28,11 @@ export default function AuthButton() {
         const checkTokenValidity = async () => {
             const tokenValid = await isTokenValid();
             if (tokenValid) {
-                router.push("/dashboard");
+                router.push("/work-order-bump");
             }
         }
         checkTokenValidity();
-      },[])
+      },[router])
 
     return (
         <form onSubmit={handleSubmit}>

@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lightspeed API Auth",
+  title: "Urbane Bumper",
   description: "Secure authentication for Lightspeed API integration",
 };
 

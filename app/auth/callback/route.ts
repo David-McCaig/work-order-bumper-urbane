@@ -29,7 +29,6 @@ export async function GET(request: Request) {
     );
 
     const data = tokenResponse?.data;
-    const accessToken = data?.access_token;
     const refreshToken = data?.refresh_token;
 
     const newAccessTokenResponse = await axios.post(
