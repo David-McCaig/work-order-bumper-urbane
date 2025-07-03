@@ -42,13 +42,11 @@ export async function GET(request: Request) {
       }
     );
 
-    console.log(newAccessTokenResponse, "newAccessTokenResponse");
-
     const newAccessTokenData = newAccessTokenResponse?.data;
     const newAccessToken = newAccessTokenData?.access_token;
 
     // Set HTTP-only cookie with the access token
-    const response = NextResponse.redirect(`${origin}/dashboard`);
+    const response = NextResponse.redirect(`${origin}/work-order-bump`);
     response.cookies.set("lightspeed_token", newAccessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

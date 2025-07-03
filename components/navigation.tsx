@@ -14,12 +14,8 @@ export function Navigation() {
       label: "Home",
     },
     {
-      href: "/dashboard",
-      label: "Dashboard",
-    },
-    {
       href: "/work-order-bump",
-      label: "Work Order Bump",
+      label: "Work Order Bumper",
     },
   ]
 
@@ -29,7 +25,7 @@ export function Navigation() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-6">
             <Link href="/" className="font-semibold text-lg">
-              Lightspeed API
+              Urbane Work Order Bumper
             </Link>
             <div className="hidden md:flex items-center space-x-4">
               {navItems.map((item) => (

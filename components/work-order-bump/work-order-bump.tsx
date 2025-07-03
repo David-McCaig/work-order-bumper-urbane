@@ -1,9 +1,18 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { toast } from "sonner"
+import confetti from "canvas-confetti"
+
+//utils
 import { addDays, isSameDay, parseISO, format } from "date-fns"
+
+//components
 import { DateSelector } from "./date-selector"
 import { WorkOrderTable } from "./work-order-table"
+
+//actions
+import { bumpWorkOrders } from "@/app/actions"
 
 interface WorkOrder {
   workorderID: string
@@ -32,17 +41,9 @@ export function WorkOrderBump({ initialWorkOrders, workorderStatuses, initialFro
 
   const [fromDate, setFromDate] = useState<Date>(initialFromDate || today)
   const [toDate, setToDate] = useState<Date>(tomorrow)
-  const [selectedWorkOrders, setSelectedWorkOrders] = useState<string[]>([])
-  const [allWorkOrders, setAllWorkOrders] = useState<WorkOrder[]>(initialWorkOrders)
+  const [selectedWorkOrders, setSelectedWorkOrders] = useState<string[]>(initialWorkOrders.map((wo) => wo.workorderID))
   const [isLoading, setIsLoading] = useState(false)
 
-  // Filter work orders by the selected "from" date
-  const filteredWorkOrders = useMemo(() => {
-    return allWorkOrders.filter((wo) => {
-      const etaOutDate = parseISO(wo.etaOut)
-      return isSameDay(etaOutDate, fromDate)
-    })
-  }, [allWorkOrders, fromDate])
 
   // Handle work order selection
   const handleWorkOrderSelection = (workOrderId: string, checked: boolean) => {
@@ -56,7 +57,7 @@ export function WorkOrderBump({ initialWorkOrders, workorderStatuses, initialFro
   // Handle select all/none
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedWorkOrders(filteredWorkOrders.map((wo) => wo.workorderID))
+      setSelectedWorkOrders(initialWorkOrders.map((wo) => wo.workorderID))
     } else {
       setSelectedWorkOrders([])
     }
@@ -67,15 +68,36 @@ export function WorkOrderBump({ initialWorkOrders, workorderStatuses, initialFro
     if (selectedWorkOrders.length === 0) return
 
     setIsLoading(true)
-
-    // TODO: Implement actual bump functionality
-    // For now, just simulate the process
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    console.log("Bumping work orders:", selectedWorkOrders, "to date:", toDate)
     
-    setSelectedWorkOrders([])
-    setIsLoading(false)
+    try {
+      const result = await bumpWorkOrders(selectedWorkOrders, toDate)
+     
+      if (result.successful > 0) {
+        // Trigger confetti when bumping is successful
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        })
+        
+        toast.success(`Successfully bumped ${result.successful} work order(s) to ${format(toDate, "PPP")}`, {
+          description: result.failed > 0 ? `${result.failed} work order(s) failed to bump` : undefined,
+          duration: 5000 // 5 seconds
+        })
+      } else if (result.failed > 0) {
+        toast.error(`Failed to bump ${result.failed} work order(s)`, {
+          description: "Please check the console for more details"
+        })
+      }
+    } catch (error) {
+      toast.error("An error occurred while bumping work orders", {
+        description: "Please try again or check the console for details"
+      })
+      console.error("Bump error:", error)
+    } finally {
+      setSelectedWorkOrders([])
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -94,7 +116,7 @@ export function WorkOrderBump({ initialWorkOrders, workorderStatuses, initialFro
 
       <WorkOrderTable
         workorderStatuses={workorderStatuses}
-        workOrders={filteredWorkOrders}
+        workOrders={initialWorkOrders}
         fromDate={fromDate}
         selectedWorkOrders={selectedWorkOrders}
         isLoading={isLoading}
