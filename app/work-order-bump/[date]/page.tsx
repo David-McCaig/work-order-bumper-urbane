@@ -1,6 +1,5 @@
 import { WorkOrderBump } from "@/components/work-order-bump"
 import { getWorkorderStatuses, getWorkOrders, isTokenValid } from "@/app/data"
-import { parseISO } from "date-fns"
 import { notFound, redirect } from "next/navigation"
 
 interface WorkOrder {
@@ -22,7 +21,9 @@ export default async function Page({ params }: { params: Promise<{ date: string 
   try {
     const { date } = await params
     // Expect date in YYYY-MM-DD format
-    fromDate = parseISO(date)
+    // Fix timezone issue by parsing in local timezone instead of UTC
+    const [year, month, day] = date.split('-').map(Number)
+    fromDate = new Date(year, month - 1, day) // month is 0-indexed in Date constructor
     
     // Validate that it's a valid date
     if (isNaN(fromDate.getTime())) {
