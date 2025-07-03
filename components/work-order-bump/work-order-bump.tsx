@@ -5,7 +5,7 @@ import { toast } from "sonner"
 import confetti from "canvas-confetti"
 
 //utils
-import { addDays, format } from "date-fns"
+import { format } from "date-fns"
 
 //components
 import { DateSelector } from "./date-selector"
@@ -44,11 +44,13 @@ export function WorkOrderBump({ initialWorkOrders, workorderStatuses, initialFro
 
   // Initialize dates on client side only to prevent hydration mismatch
   useEffect(() => {
+    // Fix timezone issue: Create dates in local timezone to avoid UTC conversion
     const today = new Date()
-    const tomorrow = addDays(today, 1)
+    const localToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+    const localTomorrow = new Date(localToday.getFullYear(), localToday.getMonth(), localToday.getDate() + 1)
     
-    setFromDate(initialFromDate || today)
-    setToDate(tomorrow)
+    setFromDate(initialFromDate || localToday)
+    setToDate(localTomorrow)
     setSelectedWorkOrders(initialWorkOrders.map((wo) => wo.workorderID))
   }, [initialFromDate, initialWorkOrders])
 

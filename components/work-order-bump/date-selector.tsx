@@ -18,9 +18,12 @@ export function DateSelector({ fromDate, toDate, onFromDateChange, onToDateChang
 
   const handleFromDateChange = (date: Date | undefined) => {
     if (date) {
-      onFromDateChange(date)
+      // Fix timezone issue: Create a new date in local timezone to avoid UTC conversion
+      const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+      
+      onFromDateChange(localDate)
       // Navigate to the new date URL
-      const formattedDate = format(date, "yyyy-MM-dd")
+      const formattedDate = format(localDate, "yyyy-MM-dd")
       router.push(`/work-order-bump/${formattedDate}`)
     }
   }
@@ -60,7 +63,13 @@ export function DateSelector({ fromDate, toDate, onFromDateChange, onToDateChang
           <Calendar
             mode="single"
             selected={toDate}
-            onSelect={(date) => date && onToDateChange(date)}
+            onSelect={(date) => {
+              if (date) {
+                // Fix timezone issue: Create a new date in local timezone to avoid UTC conversion
+                const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+                onToDateChange(localDate)
+              }
+            }}
             className="rounded-md border"
           />
           <div className="mt-4 text-sm text-muted-foreground">Selected: {format(toDate, "PPP")}</div>
