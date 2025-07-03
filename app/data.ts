@@ -86,11 +86,9 @@ export async function getWorkOrders(date?: Date) {
     // Format the date for the API query
     let queryParams = "";
     if (date) {
-      const startOfDay = new Date(date);
-      startOfDay.setHours(0, 0, 0, 0);
-      
-      const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
+      // Fix timezone issue by creating dates in local timezone
+      const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+      const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
       
       const startISO = startOfDay.toISOString();
       const endISO = endOfDay.toISOString();
