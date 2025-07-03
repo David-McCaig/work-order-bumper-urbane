@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { WorkOrderRow } from "./work-order-row";
+import { ClientOnly } from "@/components/ui/client-only";
 
 interface WorkOrder {
   workorderID: string;
@@ -60,7 +61,11 @@ export function WorkOrderTable({
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Work Orders for {format(fromDate, "PPP")}</CardTitle>
+            <CardTitle>
+              <ClientOnly fallback="Work Orders for Loading...">
+                Work Orders for {format(fromDate, "PPP")}
+              </ClientOnly>
+            </CardTitle>
             <CardDescription>
               {workOrders.length} work order(s) found
             </CardDescription>
@@ -120,7 +125,9 @@ export function WorkOrderTable({
           </Table>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
-            No work orders found for {format(fromDate, "PPP")}
+            <ClientOnly fallback="No work orders found for Loading...">
+              No work orders found for {format(fromDate, "PPP")}
+            </ClientOnly>
           </div>
         )}
       </CardContent>

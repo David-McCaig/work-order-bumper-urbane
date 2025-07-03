@@ -41,9 +41,11 @@ export function WorkOrderBump({ initialWorkOrders, workorderStatuses, initialFro
   const [toDate, setToDate] = useState<Date | null>(null)
   const [selectedWorkOrders, setSelectedWorkOrders] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isClient, setIsClient] = useState(false)
 
   // Initialize dates on client side only to prevent hydration mismatch
   useEffect(() => {
+    setIsClient(true)
     // Fix timezone issue: Use date components directly to avoid any timezone conversion
     const today = new Date()
     const localYear = today.getFullYear()
@@ -94,7 +96,9 @@ export function WorkOrderBump({ initialWorkOrders, workorderStatuses, initialFro
           origin: { y: 0.6 }
         })
         
-        toast.success(`Successfully bumped ${result.successful} work order(s) to ${format(toDate!, "PPP")}`, {
+        // Use ClientOnly to ensure date formatting only happens on client
+        const formattedDate = format(toDate!, "PPP")
+        toast.success(`Successfully bumped ${result.successful} work order(s) to ${formattedDate}`, {
           description: result.failed > 0 ? `${result.failed} work order(s) failed to bump` : undefined,
           duration: 5000 // 5 seconds
         })
@@ -125,6 +129,11 @@ export function WorkOrderBump({ initialWorkOrders, workorderStatuses, initialFro
       </div>
     </div>
   )
+
+  // Don't render anything until we're on the client side
+  if (!isClient) {
+    return loadingFallback
+  }
 
   return (
     <ClientOnly fallback={loadingFallback}>

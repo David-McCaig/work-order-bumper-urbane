@@ -5,6 +5,7 @@ import { CalendarIcon, ArrowRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar } from "@/components/ui/calendar"
+import { ClientOnly } from "@/components/ui/client-only"
 
 interface DateSelectorProps {
   fromDate: Date
@@ -44,7 +45,9 @@ export function DateSelector({ fromDate, toDate, onFromDateChange, onToDateChang
             onSelect={handleFromDateChange}
             className="rounded-md border"
           />
-          <div className="mt-4 text-sm text-muted-foreground">Selected: {format(fromDate, "PPP")}</div>
+          <ClientOnly fallback={<div className="mt-4 text-sm text-muted-foreground">Loading...</div>}>
+            <div className="mt-4 text-sm text-muted-foreground">Selected: {format(fromDate, "PPP")}</div>
+          </ClientOnly>
         </CardContent>
       </Card>
 
@@ -69,7 +72,9 @@ export function DateSelector({ fromDate, toDate, onFromDateChange, onToDateChang
             }}
             className="rounded-md border"
           />
-          <div className="mt-4 text-sm text-muted-foreground">Selected: {format(toDate, "PPP")}</div>
+          <ClientOnly fallback={<div className="mt-4 text-sm text-muted-foreground">Loading...</div>}>
+            <div className="mt-4 text-sm text-muted-foreground">Selected: {format(toDate, "PPP")}</div>
+          </ClientOnly>
         </CardContent>
       </Card>
     </div>
