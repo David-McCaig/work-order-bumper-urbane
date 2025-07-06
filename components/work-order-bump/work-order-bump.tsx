@@ -102,30 +102,25 @@ export function WorkOrderBump({
     setCurrentWorkOrder("");
 
     try {
-      // Start progress simulation
+      // Set up progress tracking
       const totalWorkOrders = selectedWorkOrders.length;
-      let currentProgress = 0;
-
+      const estimatedTimePerWorkOrder = 2000; // 4 seconds per work order
+      const totalEstimatedTime = totalWorkOrders * estimatedTimePerWorkOrder;
+      
+      // Update progress every 100ms
       const progressInterval = setInterval(() => {
-        currentProgress += (100 / totalWorkOrders) * 0.1; // Increment by 10% of one work order's progress
-        if (currentProgress <= 100) {
-          setProgress(currentProgress);
-          // Simulate which work order is being processed
-          const currentIndex = Math.floor(
-            (currentProgress / 100) * totalWorkOrders
-          );
-          if (currentIndex < totalWorkOrders) {
-            setCurrentWorkOrder(selectedWorkOrders[currentIndex]);
-          }
-        }
-      }, 1000); // Update every second
+        setProgress((prevProgress) => {
+          // Calculate what percent through we should be based on elapsed time
+          const elapsedTime = Date.now() - startTime;
+          const estimatedProgress = Math.min((elapsedTime / totalEstimatedTime) * 100, 99);
+          return estimatedProgress;
+        });
+      }, 100);
+
+      const startTime = Date.now();
+
 
       const result = await bumpWorkOrders(selectedWorkOrders, toDate!);
-
-      // Clear the progress simulation
-      clearInterval(progressInterval);
-      setProgress(100);
-
       if (result.successful > 0) {
         // Trigger confetti when bumping is successful
         confetti({
@@ -215,12 +210,11 @@ export function WorkOrderBump({
                 {
                   <p>
                     Due to Lightspeed&apos;s heavy rate limiting, this process may
-                    take up to {Math.ceil(selectedWorkOrders.length / 6)}{" "}
-                    minutes to complete.
+                    between 5 to 10 minutes to complete.
                   </p>
                 }
                 <p>
-                  Each work order requires a 10-second wait period to respect
+                  Each work order requires a wait period to respect
                   API limits.
                 </p>
                 {currentWorkOrder && (
