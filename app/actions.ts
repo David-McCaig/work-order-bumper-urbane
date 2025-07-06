@@ -43,12 +43,12 @@ export async function bumpWorkOrders(workOrders: string[], toDate: Date) {
 
   // Helper function to parse bucket level from response headers
   function parseBucketLevel(
-    headers: any
+    headers: Record<string, unknown>
   ): { current: number; total: number; dripRate: number } | null {
     const bucketLevel = headers["x-ls-api-bucket-level"];
     const dripRate = headers["x-ls-api-drip-rate"];
 
-    if (!bucketLevel || Array.isArray(bucketLevel)) return null;
+    if (!bucketLevel || Array.isArray(bucketLevel) || typeof bucketLevel !== "string") return null;
 
     const [current, total] = bucketLevel.split("/").map(Number);
 

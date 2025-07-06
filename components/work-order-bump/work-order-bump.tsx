@@ -108,8 +108,8 @@ export function WorkOrderBump({
       const totalEstimatedTime = totalWorkOrders * estimatedTimePerWorkOrder;
       
       // Update progress every 100ms
-      const progressInterval = setInterval(() => {
-        setProgress((prevProgress) => {
+      setInterval(() => {
+        setProgress(() => {
           // Calculate what percent through we should be based on elapsed time
           const elapsedTime = Date.now() - startTime;
           const estimatedProgress = Math.min((elapsedTime / totalEstimatedTime) * 100, 99);
