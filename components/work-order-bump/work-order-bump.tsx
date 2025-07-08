@@ -11,7 +11,6 @@ import { format } from "date-fns";
 import { DateSelector } from "./date-selector";
 import { WorkOrderTable } from "./work-order-table";
 import { ClientOnly } from "@/components/ui/client-only";
-import { Progress } from "@/components/ui/progress";
 
 //actions
 import { bumpWorkOrders } from "@/app/actions";
@@ -47,7 +46,7 @@ export function WorkOrderBump({
   const [selectedWorkOrders, setSelectedWorkOrders] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const [progress, setProgress] = useState(0);
+  // const [progress, setProgress] = useState(0);
   const [currentWorkOrder, setCurrentWorkOrder] = useState<string>("");
 
   // Initialize dates on client side only to prevent hydration mismatch
@@ -98,26 +97,26 @@ export function WorkOrderBump({
     if (selectedWorkOrders.length === 0) return;
 
     setIsLoading(true);
-    setProgress(0);
+    // setProgress(0);
     setCurrentWorkOrder("");
 
     try {
       // Set up progress tracking
-      const totalWorkOrders = selectedWorkOrders.length;
-      const estimatedTimePerWorkOrder = 2000; // 4 seconds per work order
-      const totalEstimatedTime = totalWorkOrders * estimatedTimePerWorkOrder;
+      // const totalWorkOrders = selectedWorkOrders.length;
+      // const estimatedTimePerWorkOrder = 2000; // 4 seconds per work order
+      // const totalEstimatedTime = totalWorkOrders * estimatedTimePerWorkOrder;
       
       // Update progress every 100ms
-      setInterval(() => {
-        setProgress(() => {
-          // Calculate what percent through we should be based on elapsed time
-          const elapsedTime = Date.now() - startTime;
-          const estimatedProgress = Math.min((elapsedTime / totalEstimatedTime) * 100, 99);
-          return estimatedProgress;
-        });
-      }, 100);
+      // setInterval(() => {
+      //   setProgress(() => {
+      //     // Calculate what percent through we should be based on elapsed time
+      //     const elapsedTime = Date.now() - startTime;
+      //     const estimatedProgress = Math.min((elapsedTime / totalEstimatedTime) * 100, 99);
+      //     return estimatedProgress;
+      //   });
+      // }, 100);
 
-      const startTime = Date.now();
+      // const startTime = Date.now();
 
 
       const result = await bumpWorkOrders(selectedWorkOrders, toDate!);
@@ -154,7 +153,7 @@ export function WorkOrderBump({
     } finally {
       setSelectedWorkOrders([]);
       setIsLoading(false);
-      setProgress(0);
+      // setProgress(0);
       setCurrentWorkOrder("");
     }
   };
@@ -201,10 +200,10 @@ export function WorkOrderBump({
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="font-medium ">Processing Work Orders</h3>
-                <span className="text-sm ">{Math.round(progress)}%</span>
+                {/* <span className="text-sm ">{Math.round(progress)}%</span> */}
               </div>
 
-              <Progress value={progress} className="w-full" />
+              {/* <Progress value={progress} className="w-full" /> */}
 
               <div className="text-sm  space-y-1">
                 {
