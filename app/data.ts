@@ -113,7 +113,7 @@ export async function getWorkOrders(date?: Date) {
         },
       }
     );
-    return response?.data;
+    return response?.data || { Workorder: [] };
   } catch (error) {
     console.error("Error fetching work orders:", error);
     
@@ -145,7 +145,7 @@ export async function getWorkorderStatuses () {
         },
     });
 
-    return response?.data?.WorkorderStatus;
+    return response?.data?.WorkorderStatus || [];
     } catch (error) {
       console.error("Error fetching work order statuses:", error);
       return [];

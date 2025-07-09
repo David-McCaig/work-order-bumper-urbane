@@ -1,7 +1,9 @@
-'use client';
- 
-import { useEffect } from 'react';
- 
+"use client";
+
+import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+
 export default function Error({
   error,
   reset,
@@ -13,20 +15,16 @@ export default function Error({
     // Optionally log the error to an error reporting service
     console.error(error);
   }, [error]);
- 
+
   return (
     <main className="flex h-full flex-col items-center justify-center">
       <h2 className="text-center">Something went wrong!</h2>
       <p className="text-center">{error?.message}</p>
-      <button
-        className="mt-4 rounded-md bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-400"
-        onClick={
-          // Attempt to recover by trying to re-render the invoices route
-          () => reset()
-        }
-      >
-        Try again
-      </button>
+      <Link href="/work-order-bump">
+        <Button className="mt-4 rounded-md px-4 py-2 text-sm text-white transition-colors ">
+          Try again
+        </Button>
+      </Link>
     </main>
   );
 }
