@@ -26,19 +26,35 @@ interface WorkOrderBumpResult {
   bucketInfo?: { current: number; total: number; dripRate: number } | null;
 }
 
+interface ErrorResult {
+  type: 'authentication' | 'configuration' | 'api' | 'network' | 'unknown';
+  message: string;
+  statusCode?: number;
+  workOrderId?: string;
+  details?: unknown;
+}
+
 export async function bumpWorkOrders(workOrders: string[], toDate: Date) {
   const cookieStore = await cookies();
   const token = cookieStore.get("lightspeed_token")?.value;
   const accountId = cookieStore.get("lightspeed_account_id")?.value;
 
   if (!token || !accountId) {
-    throw new Error("No token or account ID found");
+    const error: ErrorResult = {
+      type: 'authentication',
+      message: "Authentication required. Please log in to Lightspeed first."
+    };
+    throw new Error(JSON.stringify(error));
   }
 
   const lightSpeedApiUrl = process?.env?.LIGHTSPEED_API_URL;
 
   if (!lightSpeedApiUrl) {
-    throw new Error("LIGHTSPEED_API_URL environment variable not found");
+    const error: ErrorResult = {
+      type: 'configuration',
+      message: "Server configuration error. Please contact support."
+    };
+    throw new Error(JSON.stringify(error));
   }
 
   // Helper function to parse bucket level from response headers
@@ -103,6 +119,7 @@ export async function bumpWorkOrders(workOrders: string[], toDate: Date) {
       } as WorkOrderBumpResult;
     } catch (error: unknown) {
       console.error(`Failed to update work order ${workOrderId}:`, error);
+      
       if (error && typeof error === "object" && "response" in error) {
         const axiosError = error as {
           response?: {
@@ -111,29 +128,104 @@ export async function bumpWorkOrders(workOrders: string[], toDate: Date) {
             headers?: Record<string, string | string[] | undefined>;
           };
         };
-        console.error(
-          `Error Response Status for ${workOrderId}:`,
-          axiosError.response?.status
-        );
-        console.error(
-          `Error Response Data for ${workOrderId}:`,
-          JSON.stringify(axiosError.response?.data, null, 2)
-        );
+        
+        const statusCode = axiosError.response?.status;
+        const responseData = axiosError.response?.data;
 
-        // If it's a 429 error, log the bucket info
-        if (
-          axiosError.response?.status === 429 &&
-          axiosError.response?.headers
-        ) {
-          const bucketInfo = parseBucketLevel(axiosError.response.headers);
-
-          if (bucketInfo) {
-            console.error(
-              `Rate limited! Bucket: ${bucketInfo.current}/${bucketInfo.total}, Drip Rate: ${bucketInfo.dripRate}/sec`
-            );
+        // Extract API error message
+        let apiErrorMessage = "";
+        if (responseData && typeof responseData === "object") {
+          // Try to extract error message from common API response formats
+          const data = responseData as Record<string, unknown>;
+          if (data.error) {
+            apiErrorMessage = typeof data.error === "string" ? data.error : JSON.stringify(data.error);
+          } else if (data.message) {
+            apiErrorMessage = typeof data.message === "string" ? data.message : JSON.stringify(data.message);
+          } else if (data.errors && Array.isArray(data.errors)) {
+            apiErrorMessage = data.errors.map((err: unknown) => 
+              typeof err === "string" ? err : (err as { message?: string })?.message || JSON.stringify(err)
+            ).join(", ");
+          } else if (data.detail) {
+            apiErrorMessage = typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail);
           }
         }
+
+        // Handle specific error cases with API error messages
+        if (statusCode === 401) {
+          const message = apiErrorMessage || "Authentication failed. Please log in again.";
+          const error: ErrorResult = {
+            type: 'authentication',
+            message,
+            statusCode,
+            workOrderId
+          };
+          throw new Error(JSON.stringify(error));
+        } else if (statusCode === 403) {
+          const message = apiErrorMessage || `Access denied for work order ${workOrderId}. You may not have permission to modify this work order.`;
+          const error: ErrorResult = {
+            type: 'api',
+            message,
+            statusCode,
+            workOrderId
+          };
+          throw new Error(JSON.stringify(error));
+        } else if (statusCode === 404) {
+          const message = apiErrorMessage || `Work order ${workOrderId} not found. It may have been deleted or you may not have access to it.`;
+          const error: ErrorResult = {
+            type: 'api',
+            message,
+            statusCode,
+            workOrderId
+          };
+          throw new Error(JSON.stringify(error));
+        } else if (statusCode === 429) {
+          const bucketInfo = parseBucketLevel(axiosError.response?.headers || {});
+          if (bucketInfo) {
+            console.error(`Rate limited! Bucket: ${bucketInfo.current}/${bucketInfo.total}, Drip Rate: ${bucketInfo.dripRate}/sec`);
+          }
+          const message = apiErrorMessage || `Rate limit exceeded for work order ${workOrderId}. Please try again in a few minutes.`;
+          const error: ErrorResult = {
+            type: 'api',
+            message,
+            statusCode,
+            workOrderId
+          };
+          throw new Error(JSON.stringify(error));
+        } else if (statusCode === 500) {
+          const message = apiErrorMessage || `Lightspeed server error for work order ${workOrderId}. Please try again later.`;
+          const error: ErrorResult = {
+            type: 'api',
+            message,
+            statusCode,
+            workOrderId
+          };
+          throw new Error(JSON.stringify(error));
+        } else if (statusCode && statusCode >= 400) {
+          const message = apiErrorMessage || `API error (${statusCode}) for work order ${workOrderId}. Please check the work order details.`;
+          const error: ErrorResult = {
+            type: 'api',
+            message,
+            statusCode,
+            workOrderId
+          };
+          throw new Error(JSON.stringify(error));
+        }
       }
+      
+      // Handle network errors
+      if (error && typeof error === "object" && "code" in error) {
+        const networkError = error as { code?: string; message?: string };
+        if (networkError.code === "ECONNREFUSED" || networkError.code === "ENOTFOUND") {
+          const message = networkError.message || "Unable to connect to Lightspeed. Please check your internet connection.";
+          const error: ErrorResult = {
+            type: 'network',
+            message,
+            workOrderId
+          };
+          throw new Error(JSON.stringify(error));
+        }
+      }
+      
       return { workOrderId, success: false, error } as WorkOrderBumpResult;
     }
   }
