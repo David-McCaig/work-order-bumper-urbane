@@ -80,7 +80,15 @@ export async function getWorkOrders(date?: Date) {
 
   const accountId = cookieStore.get("lightspeed_account_id")?.value;
 
+  if (!accountId) {
+    throw new Error("No account ID found");
+  }
+
   const lightSpeedApiUrl = process?.env?.LIGHTSPEED_API_URL;
+
+  if (!lightSpeedApiUrl) {
+    throw new Error("LIGHTSPEED_API_URL environment variable not found");
+  }
 
   try {
     // Format the date for the API query
@@ -106,11 +114,12 @@ export async function getWorkOrders(date?: Date) {
       }
     );
     return response?.data;
-  } catch {
-    console.log("Error fetching work orders");
+  } catch (error) {
+    console.error("Error fetching work orders:", error);
+    
+    // Return empty data instead of null to prevent rendering errors
+    return { Workorder: [] };
   }
-
-  return null;
 }
 
 
@@ -118,6 +127,7 @@ export async function getWorkorderStatuses () {
     const cookieStore = await cookies();
     const token = cookieStore.get("lightspeed_token")?.value;
     const accountId = cookieStore.get("lightspeed_account_id")?.value;
+    
     if (!token) {
         throw new Error("No token found");
     }
@@ -128,11 +138,16 @@ export async function getWorkorderStatuses () {
 
     const lightSpeedApiUrl = process?.env?.LIGHTSPEED_API_URL;
 
-    const response = await axios.get(`${lightSpeedApiUrl}/API/V3/Account/${accountId}/WorkorderStatus.json`, {
+    try{
+      const response = await axios.get(`${lightSpeedApiUrl}/API/V3/Account/${accountId}/WorkorderStatus.json`, {
         headers: {
             Authorization: `Bearer ${token}`,
         },
     });
 
     return response?.data?.WorkorderStatus;
+    } catch (error) {
+      console.error("Error fetching work order statuses:", error);
+      return [];
+    }
 }
