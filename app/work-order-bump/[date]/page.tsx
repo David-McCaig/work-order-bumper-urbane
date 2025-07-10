@@ -55,9 +55,9 @@ export default async function Page({ params }: { params: Promise<{ date: string 
   }
 
   //remove work orders that have status Floor Bike, Finished, Done & Paid,Appointment, Write Off, Fitting, Estimate, Class
-  workOrders = workOrders.filter((workOrder: WorkOrder) => {
-    const status = workorderStatuses.find((status: WorkOrderStatus) => status.workorderStatusID === workOrder.workorderStatusID)
-    return status.name !== "Floor Bike" && status.name !== "Finished" && status.name !== "Done & Paid" && status.name !== "Appointment" && status.name !== "Write Off" && status.name !== "Fitting" && status.name !== "Estimate" && status.name !== "Class"
+  workOrders = workOrders?.filter((workOrder: WorkOrder) => {
+    const status = workorderStatuses?.find((status: WorkOrderStatus) => status.workorderStatusID === workOrder.workorderStatusID)
+    return status?.name !== "Floor Bike" && status?.name !== "Finished" && status?.name !== "Done & Paid" && status?.name !== "Appointment" && status?.name !== "Write Off" && status?.name !== "Fitting" && status?.name !== "Estimate" && status?.name !== "Class"
   })
   
   return <WorkOrderBump 
