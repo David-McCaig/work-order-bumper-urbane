@@ -25,7 +25,7 @@ export default async function Home() {
 
         <Separator className="my-8" />
 
-        {/* Main Content */}
+        {/* Main Contentt */}
         <div>
           {/* Authentication Card */}
           <Card className="mb-6">
