@@ -115,6 +115,7 @@ export async function bumpWorkOrders(workOrders: string[], toDate: Date) {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
+          timeout: 30000, // 30 second timeout
         }
       );
 
