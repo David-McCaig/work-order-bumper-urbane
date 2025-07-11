@@ -93,9 +93,10 @@ export async function bumpWorkOrders(workOrders: string[], toDate: Date) {
 
     const unitsNeeded = requestCost - availableSpace;
     const waitTimeSeconds = unitsNeeded / bucketInfo?.dripRate;
-
+  
     // Add a 10% safety buffer to be more conservative
-    const conservativeWaitTimeSeconds = waitTimeSeconds * 1.1;
+    const conservativeWaitTimeSeconds = Number(waitTimeSeconds) * 1.4;
+    console.log(conservativeWaitTimeSeconds, "conservativeWaitTimeSeconds");
 
     return Math.ceil(conservativeWaitTimeSeconds * 1000); // Convert to milliseconds and round up
   }
