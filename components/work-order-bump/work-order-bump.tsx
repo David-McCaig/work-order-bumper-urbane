@@ -124,55 +124,188 @@ export function WorkOrderBump({
 
     setIsLoading(true);
     setLastError(null);
-    // setProgress(0);
     setCurrentWorkOrder("");
 
     try {
-      // Set up progress tracking
-      // const totalWorkOrders = selectedWorkOrders.length;
-      // const estimatedTimePerWorkOrder = 2000; // 4 seconds per work order
-      // const totalEstimatedTime = totalWorkOrders * estimatedTimePerWorkOrder;
-      
-      // Update progress every 100ms
-      // setInterval(() => {
-      //   setProgress(() => {
-      //     // Calculate what percent through we should be based on elapsed time
-      //     const elapsedTime = Date.now() - startTime;
-      //     const estimatedProgress = Math.min((elapsedTime / totalEstimatedTime) * 100, 99);
-      //     return estimatedProgress;
-      //   });
-      // }, 100);
+      const BATCH_SIZE = 30;
+      const totalWorkOrders = selectedWorkOrders.length;
+      const totalBatches = Math.ceil(totalWorkOrders / BATCH_SIZE);
+      let totalSuccessful = 0;
+      let totalFailed = 0;
 
-      // const startTime = Date.now();
+      console.log(`Processing ${totalWorkOrders} work orders in ${totalBatches} batches of ${BATCH_SIZE}`);
 
+      for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+        const startIndex = batchIndex * BATCH_SIZE;
+        const endIndex = Math.min(startIndex + BATCH_SIZE, totalWorkOrders);
+        const batchWorkOrders = selectedWorkOrders.slice(startIndex, endIndex);
+        const currentBatchNumber = batchIndex + 1;
 
-      const result = await bumpWorkOrders(selectedWorkOrders, toDate!);
+        console.log(`Processing batch ${currentBatchNumber}/${totalBatches} with ${batchWorkOrders.length} work orders`);
+
+        // Update current work order to show batch progress
+        setCurrentWorkOrder(`Batch ${currentBatchNumber}/${totalBatches} (${batchWorkOrders.length} orders)`);
+
+        // Add delay between batches to respect API rate limits (except for the first batch)
+        if (batchIndex > 0) {
+          console.log(`Waiting 10 seconds before starting batch ${currentBatchNumber}...`);
+          setCurrentWorkOrder(`Waiting before batch ${currentBatchNumber}/${totalBatches}...`);
+          await new Promise(resolve => setTimeout(resolve, 10000)); // 10 second delay
+        }
+
+        try {
+          setCurrentWorkOrder(`Batch ${currentBatchNumber}/${totalBatches} (${batchWorkOrders.length} orders)`);
+          const result = await bumpWorkOrders(batchWorkOrders, toDate!);
+          
+          totalSuccessful += result.successful;
+          totalFailed += result.failed;
+
+          console.log(`Batch ${currentBatchNumber} completed: ${result.successful} successful, ${result.failed} failed`);
+
+          // If this is the last batch and we have successful work orders, trigger confetti
+          if (batchIndex === totalBatches - 1 && totalSuccessful > 0) {
+            confetti({
+              particleCount: 100,
+              spread: 70,
+              origin: { y: 0.6 },
+            });
+          }
+
+          // Show progress toast for each batch
+          if (totalBatches > 1) {
+            const formattedDate = format(toDate!, "PPP");
+            toast.success(
+              `Batch ${currentBatchNumber}/${totalBatches} completed: ${result.successful} work order(s) bumped to ${formattedDate}`,
+              {
+                description: result.failed > 0 
+                  ? `${result.failed} work order(s) failed in this batch`
+                  : undefined,
+                duration: 3000,
+              }
+            );
+          }
+
+        } catch (error) {
+          setLastError(error as Error);
+          
+          // Try to parse the error message as JSON to get structured error info
+          let errorResult: ErrorResult | null = null;
+          if (error instanceof Error) {
+            try {
+              errorResult = JSON.parse(error.message) as ErrorResult;
+            } catch {
+              // If parsing fails, it's not a structured error
+            }
+          }
+          
+          // Handle specific error types
+          if (errorResult?.type === 'authentication') {
+            toast.error("Authentication Error", {
+              description: errorResult.message,
+              duration: Infinity,
+              dismissible: true,
+            });
+            console.error("Authentication error:", error);
+            break; // Stop processing more batches
+          } else if (errorResult?.type === 'configuration') {
+            toast.error("Configuration Error", {
+              description: errorResult.message,
+              duration: Infinity,
+              dismissible: true,
+            });
+            console.error("Configuration error:", error);
+            break; // Stop processing more batches
+          } else if (errorResult?.type === 'api') {
+            const errorMessage = errorResult.workOrderId 
+              ? `Error with work order ${errorResult.workOrderId}: ${errorResult.message}`
+              : errorResult.message;
+            
+            // For rate limit errors, suggest retry
+            if (errorResult.statusCode === 429) {
+              toast.error("Rate Limit Exceeded", {
+                description: `${errorMessage} You can retry in a few minutes.`,
+                duration: Infinity,
+                dismissible: true,
+              });
+            } else if (errorResult.statusCode === 403) {
+              toast.error("Permission Denied", {
+                description: errorMessage,
+                duration: Infinity,
+                dismissible: true,
+              });
+            } else if (errorResult.statusCode === 404) {
+              toast.error("Work Order Not Found", {
+                description: errorMessage,
+                duration: Infinity,
+                dismissible: true,
+              });
+            } else if (errorResult.statusCode === 500) {
+              toast.error("Server Error", {
+                description: errorMessage,
+                duration: Infinity,
+                dismissible: true,
+              });
+            } else {
+              toast.error("API Error", {
+                description: errorMessage,
+                duration: Infinity,
+                dismissible: true,
+              });
+            }
+            console.error("API error:", error);
+            break; // Stop processing more batches
+          } else if (errorResult?.type === 'network') {
+            toast.error("Network Error", {
+              description: errorResult.message,
+              duration: Infinity,
+              dismissible: true,
+            });
+            console.error("Network error:", error);
+            break; // Stop processing more batches
+          } else {
+            // Generic error handling
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+            toast.error("An error occurred while bumping work orders", {
+              description: errorMessage,
+              duration: Infinity,
+              dismissible: true,
+            });
+            console.error("Bump error:", error);
+            break; // Stop processing more batches
+          }
+        }
+      }
       
       // Reset retry count on success
       setRetryCount(0);
       
-      if (result.successful > 0) {
-        // Trigger confetti when bumping is successful
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
-
-        // Use ClientOnly to ensure date formatting only happens on client
+      // Show final summary if we processed multiple batches
+      if (totalBatches > 1 && totalSuccessful > 0) {
         const formattedDate = format(toDate!, "PPP");
         toast.success(
-          `Successfully bumped ${result.successful} work order(s) to ${formattedDate}`,
+          `All batches completed! Successfully bumped ${totalSuccessful} work order(s) to ${formattedDate}`,
           {
-            description:
-              result.failed > 0
-                ? `${result.failed} work order(s) failed to bump`
-                : undefined,
-            duration: 5000, // 5 seconds
+            description: totalFailed > 0
+              ? `${totalFailed} work order(s) failed across all batches`
+              : undefined,
+            duration: 5000,
           }
         );
-      } else if (result.failed > 0) {
-        toast.error(`Failed to bump ${result.failed} work order(s)`, {
+      } else if (totalSuccessful > 0) {
+        // Single batch success (original behavior)
+        const formattedDate = format(toDate!, "PPP");
+        toast.success(
+          `Successfully bumped ${totalSuccessful} work order(s) to ${formattedDate}`,
+          {
+            description:
+              totalFailed > 0
+                ? `${totalFailed} work order(s) failed to bump`
+                : undefined,
+            duration: 5000,
+          }
+        );
+      } else if (totalFailed > 0) {
+        toast.error(`Failed to bump ${totalFailed} work order(s)`, {
           description: "Please check the console for more details",
         });
       }
@@ -262,7 +395,6 @@ export function WorkOrderBump({
     } finally {
       setSelectedWorkOrders([]);
       setIsLoading(false);
-      // setProgress(0);
       setCurrentWorkOrder("");
     }
   };
@@ -333,25 +465,19 @@ export function WorkOrderBump({
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="font-medium ">Processing Work Orders</h3>
-                {/* <span className="text-sm ">{Math.round(progress)}%</span> */}
               </div>
 
-              {/* <Progress value={progress} className="w-full" /> */}
-
               <div className="text-sm  space-y-1">
-                {
-                  <p>
-                    Due to Lightspeed&apos;s heavy rate limiting, this process may
-                    between 5 to 10 minutes to complete.
-                  </p>
-                }
                 <p>
-                  Each work order requires a wait period to respect
-                  API limits.
+                  Due to Lightspeed&apos;s heavy rate limiting, this process may
+                  take between 5 to 10 minutes to complete.
+                </p>
+                <p>
+                  Processing work orders in batches of 30 to manage API limits.
                 </p>
                 {currentWorkOrder && (
                   <p className="font-medium">
-                    Currently processing: work order#{currentWorkOrder}
+                    Currently processing: {currentWorkOrder}
                   </p>
                 )}
               </div>

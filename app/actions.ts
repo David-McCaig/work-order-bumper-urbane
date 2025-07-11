@@ -95,7 +95,7 @@ export async function bumpWorkOrders(workOrders: string[], toDate: Date) {
     const waitTimeSeconds = unitsNeeded / bucketInfo?.dripRate;
   
     // Add a 10% safety buffer to be more conservative
-    const conservativeWaitTimeSeconds = Number(waitTimeSeconds) * 1.4;
+    const conservativeWaitTimeSeconds = Number(waitTimeSeconds) * 1.2;
     console.log(conservativeWaitTimeSeconds, "conservativeWaitTimeSeconds");
 
     return Math.ceil(conservativeWaitTimeSeconds * 1000); // Convert to milliseconds and round up
